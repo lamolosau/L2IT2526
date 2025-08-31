@@ -98,5 +98,3 @@ python TP/TP1/solution.py
 ✨ Happy coding! 💻🔥
 
 ---
-
-Veux-tu que je te génère aussi une **version avec badges GitHub** (année, licence, langage principal, etc.) pour que ça rende encore plus pro sur la page du dépôt ?

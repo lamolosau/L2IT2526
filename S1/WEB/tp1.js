@@ -1,0 +1,76 @@
+function maxi(n1, n2) {
+
+  if (n1 >= n2) {
+    return n1;
+  } else {
+    return n2;
+  }
+
+}
+
+function abs(n) {
+
+  if (n < 0) {
+    return -n;
+  } else {
+    return n;
+  }
+
+}
+
+function harm(n) {
+
+  let somme = 0;
+  for (let i = 1; i <= n; i++) {
+    somme=somme+1/i;
+  }
+  return somme;
+
+}
+
+function harmAlt(n) {
+    
+  let somme = 0;
+  for (let i = 1; i <= n; i++) {
+    if (i % 2 === 1) {
+      somme=somme -1/ i;
+    } else {
+      somme =somme+ 1/i;
+    }
+  }
+  return somme;
+
+}
+
+function nbIterHarmAlt(epsilon) {
+
+  if (epsilon <= 0) return 0;
+  let valeurCible = -Math.log(2);
+  let somme = 0;
+  let i= 0;
+  while (true) {
+    i =i+1;
+    if (i%2 === 1) {
+      somme=somme - 1/i;
+    } else {
+      somme =somme+ 1/i;
+    }
+    if (abs(somme - valeurCible) <= epsilon) {
+      return i;
+    }
+  }
+
+}
+
+function celsiusToFahrenheit(n, pas) {
+    
+  if (pas <= 0) {
+    console.log("Le pas doit etre positif");
+    return;
+  }
+  for (let c = 0; c <= n; c = c + pas) {
+    let f = (9 * c) / 5 + 32;
+    console.log(c + " °C -> " + f + " °F");
+  }
+
+}

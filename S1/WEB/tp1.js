@@ -77,3 +77,22 @@ function celsiusToFahrenheit(n, pas) {
   }
 
 }
+
+function bin(quantity, unit) {
+  switch (unit) {
+    case "K":
+      return quantity*1024;
+      break;
+    case "M":
+      return quantity*1024**2;
+      break;
+    case "G":
+      return quantity*1024**3;
+      break;
+    case "T":
+      return quantity*1024**4;
+      break;
+    default:
+      return quantity;
+  }
+}

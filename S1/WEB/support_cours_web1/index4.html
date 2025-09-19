@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Programmation Web 1: JavaScript</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="css/style1.css">
+    <link rel="stylesheet" type="text/css" href="css/minor-style.css">
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse
+
+#  Programmation Web: JavaScript
+
+[Johan Koitka](mailto:johan.koitka@univ-artois.fr)
+
+---
+
+class: center, middle
+
+#  Canvas et animation
+
+---
+
+## La balise `&lt;canvas>`
+
+### Petite Historique
+- proposée par Apple pour WebKit en 2004
+- intégré par Gecko/Mozilla (2005) et opéra (2006)
+- fait partie du standard HTML5
+
+### Principe
+- permet d'accéder à des outils de dessin (via API JavaScript) et de transformations
+- accélération matérielle (2D et 3D - WebGL)
+- 'double buffering', etc.
+
+---
+
+### Exemple
+```html
+&lt;canvas id="canvas" width="400" height="300">
+    Votre navigateur ne prend pas en charge la balise canvas.
+&lt;/canvas>
+```
+<div style>
+    <canvas id="exemple1" width="400" height="300" style="border: 1px solid grey;">
+        Votre navigateur ne prend pas en charge la balise canvas.
+    </canvas>
+</div>
+
+---
+
+## Le contexte 2D: `CanvasRenderingContext2D`
+
+```javascript
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+```
+
+## Principe en 2D
+- le point `(0,0)` est en haut à gauche
+- les `y` sont donc inversés
+- les négatifs sont accessibles
+
+<center>
+![Canvas](img/Canvas_default_grid.png)
+</center>
+<em>Source: Mozilla Developper Network</em>
+
+---
+
+## Utiliser `CanvasRenderingContext2D`
+
+### Méthodes d'utilisation des chemins
+- `void beginPath()`: débute un chemin
+- `void moveTo(float x, float y)`: déplace aux coodonnées données
+- `void closePath()`: ferme le chemin
+
+### Différentes méthodes pour se déplacer
+- `void lineTo(float x, float y)`: se déplace en ligne droite
+- `void arcTo(in float x1, in float y1, in float x2, in float y2, in float radius);` : se déplace en arc de cercle
+-  `void bezierCurveTo(in float cp1x, in float cp1y, in float cp2x, in float cp2y, in float x, in float y)`: se déplace en suivant une courbe de Bézier
+
+---
+
+### Tracer/remplir
+- `void stroke()` : dessine le chemin
+- `void fill()` : remplit le chemin (qui doit être fermé)
+
+### Autres méthodes
+- `void strokeRect(in float x, in float y, in float w, in float h);`
+- `void fillRect(in float x, in float y, in float width, in float height);`
+- `void clearRect(in float x, in float y, in float width, in float height);`
+- ...
+
+
+---
+## Exemple (suite)
+
+```javascript
+ctx.beginPath();
+ctx.moveTo(200, 150);
+ctx.lineTo(400, 300);
+ctx.lineTo(200, 300);
+ctx.closePath();
+ctx.stroke();
+```
+
+<center>
+<iframe width="420" height="320" src="html/canvas1.html"></iframe>
+</center>
+
+---
+
+## Les attributs de `CanvasRenderingContext2D`
+- `fillStyle`
+- `fillStroke`
+- `lineWidth`
+- `lineCap`
+- ...
+
+---
+
+## Exemple (suite)
+
+```javascript
+ctx.strokeStyle = 'red';
+
+ctx.beginPath();
+ctx.moveTo(200, 150);
+ctx.lineTo(0, 150);
+ctx.lineTo(0, 300);
+ctx.closePath();
+ctx.stroke();
+```
+<center>
+<iframe width="420" height="320" src="html/canvas2.html"></iframe>
+</center>
+
+---
+## Exemple (suite)
+
+```javascript
+ctx.fillStyle = 'darkblue';
+ctx.beginPath();
+ctx.moveTo(200, 150);
+ctx.lineTo(0, 0);
+ctx.lineTo(200, 0);
+ctx.closePath();
+ctx.fill();
+```
+
+<center>
+<iframe width="420" height="320" src="html/canvas3.html"></iframe>
+</center>
+
+
+---
+
+## Exemple (suite)
+
+```javascript
+ctx.fillStyle = 'green';
+ctx.strokeStyle = 'orange';
+ctx.lineWidth = 10;
+
+ctx.beginPath();
+ctx.moveTo(200, 150);
+ctx.lineTo(400, 150);
+ctx.lineTo(400, 0);
+ctx.closePath();
+ctx.fill();
+ctx.stroke();
+```
+
+<center>
+<iframe width="420" height="320" src="html/canvas4.html"></iframe>
+</center>
+
+---
+
+## Mais aussi...
+- toutes les transformations
+- les images data
+- les gradients
+- gestion de textes
+- les sauvegardes de style
+- ...
+
+## toute la doc
+- [https://developer.mozilla.org/fr/docs/Web/API/CanvasRenderingContext2D](https://developer.mozilla.org/fr/docs/Web/API/CanvasRenderingContext2D)
+- [http://www.html5canvastutorials.com/](http://www.html5canvastutorials.com/)
+---
+
+## Bonus: récupérer les coordonnées lors d'un clic de souris
+
+```javascript
+function computeCoordinates(event) {
+    // on récupère l'élément qui a produit l'événement (ici le canvas)
+    const canvas = event.currentTarget;
+
+    // on demande le rectangle englobant le canvas
+    const rect = canvas.getBoundingClientRect();
+
+    // on calcule les coordonnées relatives
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    return [x, y];
+}
+```
+
+---
+
+## Bonus 2 : les animations
+
+### Principe
+0. on calcule le nouvel état du modèle
+1. on efface le `canvas`
+2. on affiche le modèle (ou on requiert son affichage)
+3. on recommence...
+
+---
+
+### Méthodes de `window`
+
+- `window.setInterval(f, delay)`
+    - lance la fonction `f` chaque `delay` millisecondes
+    - renvoie un identifiant
+    - `window.clearInterval(intervalID)` permet d'annuler
+
+- `WindowTimers.setTimeout(f, delay)`
+    - Exécute la fonction définie par function dans `delay` millisecondes
+    - renvoie un identifiant
+    - `WindowTimers.clearTimeout()` annule le compte à rebours
+
+---
+### Méthodes de `window` (suite)
+
+- `window.requestAnimationFrame(callback)`
+    - Informe le navigateur que l'on veut afficher une animation et lui demande d'appeler la fonction `callback` pour mettre à jour cette animation avant que l'écran soit redessiné
+    - permet de fluidifier les animations
+    - la `callback` refait un appel à `requestAnimationFrame` jusqu'à la fin de l'animation
+    - `window.cancelAnimationFrame()` peut annuler la demande en cours
+    
+---
+### Exemple
+
+<center>
+<iframe width="320" height="320" src="html/terrelune.html"></iframe>
+</center>
+
+---
+   
+```javascript
+var sun = new Image();
+var moon = new Image();
+var earth = new Image();
+function init(){
+  sun.src = './img/sun.png';
+  moon.src = './img/moon.png';
+  earth.src = './img/earth.png';
+  window.requestAnimationFrame(draw);
+}
+
+function draw() {
+  var ctx = document.getElementById('canvas').getContext('2d');
+
+  ctx.globalCompositeOperation = 'destination-over';
+  ctx.clearRect(0,0,300,300); // effacer le canvas
+
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.strokeStyle = 'rgba(0,153,255,0.4)';
+  ctx.save();
+  ctx.translate(150,150);
+
+  // Terre
+  var time = new Date();
+  ctx.rotate( ((2*Math.PI)/60)*time.getSeconds() + ((2*Math.PI)/60000)*time.getMilliseconds() );
+  ctx.translate(105,0);
+  ctx.fillRect(0,-12,50,24); // Ombre
+  ctx.drawImage(earth,-12,-12);
+```
+
+---
+   
+```javascript
+  // Lune
+  ctx.save();
+  ctx.rotate( ((2*Math.PI)/6)*time.getSeconds() + ((2*Math.PI)/6000)*time.getMilliseconds() );
+  ctx.translate(0,28.5);
+  ctx.drawImage(moon,-3.5,-3.5);
+  ctx.restore();
+
+  ctx.restore();
+  
+  ctx.beginPath();
+  ctx.arc(150,150,105,0,Math.PI*2,false); // Orbite terrestre
+  ctx.stroke();
+ 
+  ctx.drawImage(sun,0,0,300,300);
+
+  window.requestAnimationFrame(draw);
+}
+
+window.addEventListener("DOMContentLoaded",init);
+```
+
+
+
+    </textarea>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/remark/0.14.0/remark.min.js"></script>
+
+    <script>
+        window.onload = function () {
+            // Remark.js
+            var slideshow = remark.create();
+            /*$('#source').load('pres5.md', function() {
+                var slideshow = remark.create();
+            });*/
+        }
+    </script>
+  </body>
+</html>

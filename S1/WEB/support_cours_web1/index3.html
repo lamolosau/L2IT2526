@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Programmation Web 1: JavaScript</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="css/style1.css">
+    <link rel="stylesheet" type="text/css" href="css/minor-style.css">
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse
+
+#  Programmation Web: JavaScript
+
+[Johan Koitka](mailto:johan.koitka@univ-artois.fr)
+
+---
+
+class: center, middle
+
+#  3. Cœur du langage concepts avancés
+
+---
+
+## Plan
+
+### Objets avancés
+### JavaScript fonctionnel
+
+---
+## Objets avancés
+
+### Rappels
+- Ensembles chaîne/valeur
+- En JavaScript, à peu près tout est objet...
+
+--
+
+### Définition d'objets littéraux
+```JavaScript
+var point = {
+   name: 'O',
+   x: 0,
+   y: 0,
+   'à virer…': true
+};
+```
+
+---
+
+### Accès/modification
+```JavaScript
+point.x === point['y']; // true
+point.y = point.x + 1;
+point['y'] -= 1;
+```
+
+--
+
+### Suppression d'un attribut (propriété, champ,…)
+```JavaScript
+delete point['à virer...'];
+toto = 12;
+delete toto; // fonctionne car attribut de l'objet global !
+```
+--
+
+### Question : Comment supprimer le deuxième élément d'un tableau ?
+
+--
+
+```JavaScript
+var tab = [1,2,3,4];
+delete tab[1];
+Object.keys(tab); // [ '0', '2', '3' ]
+```
+
+```JavaScript
+// et pas tab[1] = undefined...
+// Object.keys(tab); // [ '0', '1', '2', '3' ]
+```
+
+---
+## Créer/Modifier les propriétés d'un objet
+
+### Syntaxe
+- `Object.defineProperty(obj, prop, descripteur)`
+- `Object.defineProperties(obj, obj_descripteur)`
+
+### Description
+- `obj` : l'objet à modifier
+- `prop` : la propriété à ajouter/modifier
+- `descripteur` : un objet décrivant les "propriétés de la propriété"
+- `obj_descripteur` : un objet contenant des couples prop/descripteur
+
+
+### Remarque :  
+- `Object.getOwnPropertyDescriptor(obj, prop)` et `Object.getOwnPropertyDescriptors(obj)` font l'inverse
+---
+
+### Exemple
+```JavaScript
+var point2 = {};
+
+Object.defineProperty(point2, 'name', {
+    value: 'carré unité',
+    enumerable: true,
+    writable: false
+});
+
+Object.defineProperties(point2, {
+    x: {value: 1, enumerable: true},
+    y: {value: 1, enumerable: true}
+});
+
+point2; // {name: 'carré unité', x: 1, y: 1}
+```
+
+---
+### Propriétés possibles des objets descripteurs
+
+<table>
+    <tr>
+        <th>Descripteur</th><th>Description</th><th>Valeur par défaut</th>
+    </tr>
+    <tr>
+        <th>configurable</th><td>la propriété est-elle configurable (via defineProperty) ?</td><td><code>false</code></td>
+    </tr>
+    <tr>
+        <th>enumerable</th><td>la propriété apparaît-elle lors des énumérations ?</td><td><code>false</code></td>
+    </tr>
+    <tr>
+        <th>value</th><td>la valeur de la propriété</td><td><code>undefined</code></td>
+    </tr>
+    <tr>
+        <th>writable</th><td>la propriété est-elle modifiable via un opérateur d'assignement ?</td><td><code>false</code></td>
+    </tr>
+    <tr>
+        <th>get</th><td>la propriété est une fonction qui sert de getter à une autre propriété</td><td><code>undefined</code></td>
+    </tr>
+    <tr>
+        <th>set</th><td>la propriété est une fonction qui sert de setter à une autre propriété</td><td><code>undefined</code></td>
+    </tr>
+</table>
+
+**NB** : il est également possible d'utiliser des masques
+
+---
+
+## Les méthodes
+
+### Définition
+
+Une méthode est une fonction à l'intérieur d'un objet.
+
+### Exemple
+
+```JavaScript
+function sayCoucou() {
+    console.log('Coucou');
+}
+
+var sayToutLeMonde = function () {
+    console.log('tout le monde !');
+};
+
+var obj = {
+   say1: sayCoucou,
+   say2: sayToutLeMonde,
+   sayAll: function () {
+        this.say1();
+        this.say2();
+   }
+};
+
+obj.sayAll();
+```
+
+---
+
+## Accès aux attributs d'un objet par une méthode
+
+### Le mot-clé `this`
+
+```JavaScript
+var point = {
+    x: 0,
+    y: 0,
+    distanceFromOrigin: function () {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+};
+```
+
+---
+
+### Remarque 1
+la valeur de `this` n'est connue qu'à  l'exécution/interprétation
+
+```JavaScript
+function sq() {
+   return this.x * this.x + this.y * this.y;
+}
+
+point.square = sq;
+```
+
+--
+
+```JavaScript
+sq();           // NaN
+point.square(); // 0
+```
+
+--
+
+### Remarque 2
+comme elle n'est connue qu'à l'exécution, `this` peut avoir des valeurs extrêmement variées
+
+---
+
+### **Attention** aux _inner functions_ !!!
+
+```JavaScript
+var x = 13;
+
+var obj = {
+    x: 12,
+    f: function () {
+        var g = function () {
+            console.log(this.x);
+        };
+        console.log(this.x);
+        g();
+    }
+};
+```
+
+--
+
+```JavaScript
+// affichage
+obj.f();
+```
+
+--
+
+```JavaScript
+12
+13
+```
+
+---
+
+### Règle
+à l'intérieur d'une fonction interne définie par `function`, `this` prend la valeur de l'objet `global` (`window` dans un navigateur)
+
+--
+
+### Code corrigé
+Idiome `that`/`self`
+
+```JavaScript
+var x = 13;
+
+var obj = {
+    x: 12,
+    f: function () {
+        var that = this; // idiome js
+        var g = function () {
+            console.log(that.x);
+        };
+        console.log(this.x);
+        g();
+    }
+};
+```
+
+---
+
+## getter et setter
+### Principe
+Associe des points d'entrée/sortie à une propriété. Un getter permet de récupérer la valeur d'une propriété, tandis qu'un setter permet de la modifier.
+
+### Syntaxe
+- `{get prop() { ... } }` ou `{get [expression]() { ... } }`
+- `{set prop(val) { ... } }` ou `{set [expression](val) { ... } }`
+
+### Contraintes
+- l'identifiant peut être un nombre ou une chaîne de caractères
+- ils doivent avoir exactement 0 paramètre pour un `getter` et 1 pour un `setter`
+- le nom ne doit pas apparaître dans un autre `setter` (resp. `getter`) ou dans une autre propriété mais un même nom peut être utilisé pour un couple `getter`/`setter`
+
+---
+### Exemple
+```JavaScript
+var obj = {
+    a: 0,
+    get b() {
+        return this.a + 1;
+    },
+    set ['coco'[0]](x) {
+        this.a = x - 1;
+    }
+};
+```
+
+--
+
+```JavaScript
+obj.b; // 1
+```
+
+--
+
+```JavaScript
+obj.c = 12;
+```
+
+--
+
+```JavaScript
+obj.a; // 11
+```
+
+--
+
+### Remarques
+- on peut également utiliser `Object.defineProperty` pour définir des `setters`/`getters` (obligatoire pour les constructeurs)
+- `delete` permet de le supprimer
+
+---
+
+## Les constructeurs
+
+### Objectif
+Créer des objets qui possèdent les mêmes caractéristiques
+
+### Pour cela
+- on appelle une **fonction** (qui est un objet) avec le mot-clé `new`
+- par convention, cette fonction commence par une majuscule
+- `this` est assigné à un nouvel objet (vide au début)
+
+--
+
+### Exemple
+```JavaScript
+function Point(x, y) {
+    this.x = x;
+    this.y = y;
+}
+
+let p0 = new Point(0, 0); // { x: 0, y: 0 }
+let p1 = new Point(1, 1); // { x: 1, y: 1 }
+```
+
+---
+
+## Les prototypes
+
+- permettent d'ajouter des méthodes (et des propriétés) à tous les objets créés
+- c'est un objet commun à tous les objets produits par un new
+- il sera associé à l'attribut `__proto__` à l'intérieur des objets créés
+
+---
+
+## Les prototypes
+
+### Exemple
+```JavaScript
+Point.prototype = {
+    sym: function () {
+        this.x = -this.x;
+        this.y = -this.y;
+    }
+};
+
+Point.prototype.invert = function () {
+    let tmp = this.x;
+    this.x = this.y;
+    this.y = tmp;
+};
+
+let p2 = new Point(12 ,13);
+p2.sym();    // {x: -13, y: -12}
+p2.invert(); // {x: -12, y: -13}
+```
+
+---
+
+## Chaîne de prototypes et héritage
+
+### Chaîne de prototypes
+- le prototype d'un objet peut lui aussi contenir un prototype
+- lors d'un accès à une propriété ou à une méthode, l'interprète regarde d'abord dans l'objet puis dans le prototype de l'objet, puis dans le prototype du prototype de l'objet, etc.
+
+--
+
+### Héritage par prototypes
+- on peut faire hériter d'un objet les propriétés d'un autre objet en le mettant comme prototype de l'objet considéré
+
+---
+
+## Chaîne de prototypes et héritage
+
+### Exemple
+```JavaScript
+function MyArray () {this.toto = 12;};
+MyArray.prototype = new Array();
+var a = new MyArray();
+console.log(a.length, a.toto); // 0 12
+a[0] = 1;
+console.log(a.length, a.toto); // 1 12
+a instanceof MyArray;          // true
+a instanceof Array;            // true
+```
+
+---
+## Créer un objet avec un prototype donné
+
+On pourra utiliser `Object.create`
+
+### Syntaxe
+- `Object.create(proto[, objectProperty])`
+
+- `objectProperty` se comporte comme dans `Object.defineProperties()`.
+
+### Exemple
+```JavaScript
+function Point3D (x, y, z) {
+    Point.call(this, x, y); // on appelle le constructeur parent
+    this.z = z;
+};
+
+Point3D.prototype = Object.create(Point.prototype);
+```
+---
+
+### Itérer les éléments d'un objet
+
+#### L'opérateur `in`
+- renvoie `true` *ssi* le nom d'une propriété appartient à l'objet (chaîne de prototype comprise)
+
+#### La méthode `obj.hasOwnProperty(key)`
+- renvoie `true` ssi l'objet `obj` contient directement la propriété de nom `key` (sans passer par la chaîne de prototype)
+
+#### La construction `for in`
+- cette méthode traverse toutes les propriétés énumérables ainsi que sa chaîne de prototypes
+
+```JavaScript
+for (k in obj) console.log(k);
+```
+---
+
+### Itérer les éléments d'un objet
+
+#### La méthode `Object.keys(obj)`
+- elle renvoie un tableau contenant l'ensemble des noms de propriétés énumérables de `obj`, sans passer par la chaîne de prototype
+
+#### La méthode `Object.getOwnPropertyNames(obj)`
+- cette méthode renvoie l'ensemble des noms de propriétés (énumérables ou non) sans suivre la chaîne de prototype
+
+
+---
+
+## Classes (ES6 - [http://es6-features.org](http://es6-features.org))
+
+### Déclaration de "classe"
+
+```JavaScript
+class Shape {
+    constructor (id, x, y) {
+        this.id = id; this.move(x, y);
+    }
+    move (x, y) {
+        this.x = x; this.y = y;
+    }
+}
+```
+
+--
+
+#### Sucre syntaxique pour :
+
+```JavaScript
+var Shape = function (id, x, y) {
+    this.id = id;
+    this.move(x, y);
+};
+Shape.prototype.move = function (x, y) {
+    this.x = x;
+    this.y = y;
+};
+```
+
+
+---
+
+### Héritage
+
+```JavaScript
+class Rectangle extends Shape {
+    constructor (id, x, y, width, height) {
+        super(id, x, y); this.width  = width;
+        this.height = height;
+    }
+}
+```
+
+<br>
+
+--
+
+#### Sucre syntaxique pour :
+
+```JavaScript
+var Rectangle = function (id, x, y, width, height) {
+    Shape.call(this, id, x, y);
+    this.width  = width;
+    this.height = height;
+};
+Rectangle.prototype = Object.create(Shape.prototype);
+Rectangle.prototype.constructor = Rectangle;
+```
+
+---
+
+### Héritage (suite)
+
+
+```JavaScript
+class Circle extends Shape {
+    constructor (id, x, y, radius) {
+        super(id, x, y); this.radius = radius;
+    }
+}
+```
+<br>
+
+--
+
+#### Sucre syntaxique pour :
+
+```JavaScript
+var Circle = function (id, x, y, radius) {
+     Shape.call(this, id, x, y);
+     this.radius = radius;
+};
+Circle.prototype = Object.create(Shape.prototype);
+Circle.prototype.constructor = Circle;
+```
+
+
+
+---
+
+## Sérialisation d'un objet en JSON
+
+### Objectif
+- Transformer en une chaîne de caractère les propriétés d'un objet
+- On ne prend pas en compte les fonctions
+
+--
+
+### JSON (JavaScript Object Notation)
+- Reprend la syntaxe de JavaScript
+- Place toujours des guillemets autour du nom des propriétés
+
+--
+
+### Convertir une chaîne JSON en un objet JavaScript
+```JavaScript
+var obj = JSON.parse(text);
+```
+
+### Convertir un objet JavaScript en JSON
+```JavaScript
+var p12 = new Point(12,12);
+JSON.stringify(p12);        // '{"x":12,"y":12}'
+```
+
+---
+
+### Autres facilitées ES6
+
+
+#### Raccourcis d'écriture de définition
+
+
+```JavaScript
+// champs + initialisation
+obj = { x, y };
+```
+
+##### Sucre pour
+
+```JavaScript
+obj = { x: x, y: y };
+```
+
+--
+
+#### Raccourcis d'écriture de méthodes
+
+```JavaScript
+obj = {
+    foo (a, b) {
+    …
+}
+```
+
+##### Sucre pour
+
+
+``` JavaScript
+obj = {
+    foo: function (a, b) {
+       …
+   }
+}
+```
+
+---
+
+
+
+### Destructuration (ES6)
+
+```JavaScript
+var l = [ 1, 2, 3 ];
+var [ a, , b ] = list;
+[ b, a ] = [ a, b ];
+```
+
+--
+
+```JavaScript
+var obj = {name: "Totor", profession: "Castor", age:12}
+
+var { name, profession } = obj;
+```
+
+--
+
+```JavaScript
+function f ([ name, val ]) {
+    console.log(name, val);
+}
+
+function g ({ name: n, val: v }) {
+    console.log(n, v);
+}
+```
+
+---
+
+## Exercice
+
+### Les complexes (non mutables)
+- addition
+- multiplication
+- module
+- conjugué
+- toString
+- toJSONString
+- coordonnées polaires (avec getter)
+
+### Les complexes mutables
+- idem sauf coordonnées polaires (avec getter et setter)
+- clone
+
+---
+
+#### Tests
+
+```javascript
+let cmut1 = new ComplexeMut(1, 1);
+
+cmut1.mod();
+console.log(cmut1);
+
+cmut1.add(new Complexe(1, 1)).conj();
+console.log(cmut1);
+
+cmut1.theta += Math.PI;
+console.log(cmut1);
+
+cmut1.rho = 4 * Math.sqrt(2);
+console.log(cmut1);
+```
+
+##### Question
+Qu'affichent les tests ?
+---
+
+class: center, middle
+
+## JavaScript fonctionnel
+
+---
+
+
+## JavaScript fonctionnel
+
+#### Les fonctions: concepts avancés
+- arguments par défaut
+- arguments en nombre quelconque
+- fermetures (closures)
+- les méthodes associées à `Function` (`apply`, `bind`, `call`)
+
+#### Éléments de programmation fonctionnelle
+- fonctions d'ordre supérieur
+- `foreach`, `every`, `some`, `map`, `reduce`/`reduceRight` (`Array`)
+- `traverse`  (`Object`)
+- curryfication
+
+#### Idiomes/patterns courants en JavaScript
+- cascade
+- mémoïsation
+- module
+
+---
+
+### Les fonctions
+
+#### Rappels
+- JavaScript est plus proche de OCaml/Scheme/Lisp/Haskell/Scala que de C/Java !
+> *JavaScript is Lisp in C's clothing!* Douglas Crockford
+>
+
+- Une fonction est un objet comme un autre (qui a comme prototype celui d'`Object`)
+- Elles peuvent être utilisées comme argument et comme valeur de retour d'une autre fonction
+- Tous les principaux concepts de la programmation  fonctionnelle existent en JavaScript (exception notable : l'optimisation des récursivités terminales)
+
+---
+
+#### Définition d'une fonction
+```javascript
+function f (...) {
+    ...
+}
+// (quasi) équivalent à :
+var f = function f (...) {
+    ...
+};
+
+// fonction anonyme ("lambda")
+var f2 = function (...) {
+    ...
+}; // rq: f2 n'est pas visible par la lambda
+```
+
+--
+
+#### Définition d'une lambda (ES6)
+```javascript
+let plus1 = x => x + 1;
+
+let add = (x, y) => x + y;
+
+```
+
+--
+
+##### Remarques
+- la parenthèse pour un argument est facultative
+- on peut utiliser un block d'instructions
+- pas de problème avec `this` dans les fonctions internes !
+
+---
+
+##### Exemple (ES5)
+
+```javascript
+
+var obj = {
+    x: 1,
+    plusPlus: function () {
+        var f1 = function() {
+            this.x += 1;
+        }
+        f1();
+    }
+};
+```
+
+--
+
+
+```javascript
+obj.plusPlus();
+obj.x;    // x = 1
+global.x; // NaN !
+```
+--
+
+
+##### Exemple (ES6)
+
+```javascript
+let obj = {
+    x: 1,
+    plusPlus: function () {
+        let f1 = () => this.x += 1;
+        f1();
+    }
+};
+```
+--
+
+```javascript
+obj.plusPlus();
+obj.x;    // x = 2
+```
+
+
+
+---
+
+#### Retour d'une fonction
+```javascript
+// Mot-clé: return
+var plus1 = fonction(x) {
+    return x + 1;
+};
+```
+--
+
+Si pas définie : retourne l'élément `undefined`
+
+```javascript
+var hello = function (x) {
+    console.log('hello');
+};
+hello(); // -> undefined
+```
+
+--
+
+Si appelée "par un `new`", retourne `this` (sauf si elle retourne elle-même un objet)
+
+```javascript
+var MyNum = function (x) {
+    this.x = x;
+};
+var num = new MyNum(12); // -> {x: 12} (+ prototype éventuel)
+```
+---
+
+#### Arguments par défaut
+```javascript
+var plus1 = function (x) {
+    if (x === undefined) x = 0;
+    return x + 1;
+}
+plus1(); // 1
+```
+
+#### Arguments par défaut (ES6)
+```javascript
+var plus1 = function (x = 0) {
+    return x + 1;
+}
+plus1(); // 1
+```
+
+##### Remarques
+```javascript
+plus1(1, 12, 'toto'); // 2
+plus1('toto');        // 'toto1'
+```
+
+---
+
+#### Arguments inconnus
+```javascript
+var printArgs = function () {
+    var i;
+    for (i = 0; i < arguments.length; i += 1) {
+        console.log('argument n°' + i + ': ' + arguments[i]);
+    }
+};
+```
+
+```javascript
+printArgs(12, 'Totor le castor',  [1, 2, 3]);
+// argument n°0: 12
+// argument n°1: 'Totor le castor'
+// argument n°2: [1, 2, 3]
+```
+--
+
+#### Arguments inconnus (ES6)
+```javascript
+let printArgs = function (...args) {
+    let i;
+    for (i = 0; i < args.length; i += 1) {
+        console.log('argument n°' + i + ': ' + args[i]);
+    }
+};
+```
+
+---
+
+### Fonctions et objets
+
+#### Rappel
+- Une fonction dans un objet est appelée méthode
+- `this` est mis à jour en fonction de l'exécution
+
+##### Exemple
+```javascript
+var obj = {
+    n: 0,
+    getN: function () {
+        return this.n;
+    }
+};
+```
+
+--
+
+- `Function.prototype.bind(thisArg[, arg1[, arg2[, ...]]])`
+ renvoie une fonction qui est la même fonction, mais en lui associant une valeur de `this` (des arguments supplémentaires peuvent être donnés)
+
+--
+
+##### Exemple (suite)
+```javascript
+var getNPlus1 = function () {return this.n + 1;};
+
+var f = getNPlus1.bind(obj);
+f(); // 1
+```
+---
+
+#### Autres méthodes de `Function`
+- `Function.prototype.call()`
+    - `f.call(thisArg[, arg1[, arg2[, ...]]])`
+    - appelle la fonction `f` avec comme valeur de `this` celui passé et comme arguments `arg1`,...
+
+- `Function.prototype.apply()`
+    - f.apply(thisArg, [argsArray])
+    - idem mais avec un tableau d'arguments
+
+- Utilisation
+    - appel d'un constructeur dans le prototype
+    - utilisation dynamique
+    - pattern décorateur
+
+---
+
+### Exemple : le pattern décorateur
+#### Principe
+On exécute de façon transparente du code avant et après l'appel de la fonction initiale
+
+--
+
+#### Exemple
+```javascript
+function timer(f) {
+    return function (...args) {
+        const t1 = Date.now();
+        const res = f.apply(undefined, args);
+        const t2 = Date.now();
+
+        console.log('resultat: ', res);
+        console.log('temps: ', t2 - t1, 'ms');
+
+        return res;
+    }
+}
+```
+
+--
+```javascript
+let f = timer(Math.sqrt);
+f(2);
+// resultat:  1.4142135623730951
+// temps:  0 ms
+// 1.4142135623730951
+```
+---
+## Fonctions d'ordre supérieur
+
+### Définition
+Il s'agit de fonctions qui possèdent au moins l'une des propriétés suivantes :
+1. elles admettent une fonction comme paramètre (quelquefois improprement appelée *callback*)
+2. elles renvoient une fonction
+
+---
+
+### Fonction comme argument
+
+Comme n'importe quel objet, on peut utiliser une fonction comme argument.
+
+```javascript
+var tab = [4, 1, 12, 5];
+tab.sort(); // ->  [ 1, 12, 4, 5 ] (rappel le tableau est également modifié)
+
+var comp1 = function  (x, y) {
+    return x - y;
+};
+
+var comp2 = function  (x, y) {
+    return comp1(y, x);
+};
+```
+
+```javascript
+tab.sort(comp1); // -> [ 1, 4, 5, 12 ]
+tab.sort(comp2); // -> [ 12, 5, 4, 1 ]
+```
+
+---
+### Programmation fonctionnelle et tableaux
+
+
+- `Array.prototype.every()`
+
+    - `tab.every(f[, thisArg])`
+    - teste si tous les éléments du tableau vérifient `f`
+
+- `Array.prototype.some()`
+    - idem mais s'arrête au premier élément qui vérifie `f`
+
+- `Array.prototype.forEach()`
+    - `tab.forEach(f[, thisArg])`
+    - applique la fonction à chacun des éléments du tableau
+    - arguments de `f` : (`valeur`, `indice`, `tab`)
+
+**NB:** `thisArg` est un argument facultatif permettant de définir la valeur de this
+
+---
+#### Exemple
+```javascript
+var tab = [1, 2, 3, 4];
+
+var paire = function (a) {
+    return a % 2 === 0;
+};
+```
+
+```javascript
+tab.every(paire); // false
+
+tab.some(paire); // true
+
+tab.forEach(function (val, i, tab) {tab[i] = 2 * val});
+tab; // [2, 4, 6, 8]
+
+tab.every(paire); // true
+
+var tab2 = tab.map(val => val + 1); // notation féchée, ES6
+tab2; // [ 3, 5, 7, 9 ]
+```
+
+---
+
+### Programmation fonctionnelle et tableaux (suite)
+
+
+- `Array.prototype.map()`
+    - `tab.map(f[, thisArg])`
+    - crée un nouveau tableau où chaque élément est le résultat de la fonction appliquée à l'élément du tableau initial
+    - arguments de `f` : `(valeur, indice, tab)`
+- `Array.prototype.reduce()`/`reduceRight()`
+    - `tab.reduce(f[, valeurInitiale])`
+    - agrège les éléments du tableau en utilisant la fonction `f`
+    - `valeurInitiale` : valeur de l'accumulateur, la première case du tableau sinon
+    - arguments de `f` : `(valPrec, val, indice, tab)`
+
+**NB**: `reduceRight` fait la même chose mais en partant de la droite
+
+
+
+---
+
+
+#### Exemples
+```javascript
+let tab3 = tab.map(val => val / 2 - 1);
+tab3; // [ 0, 1, 2, 3 ]
+
+let somme = tab3.reduce(function(a, b) {return a + b;});
+somme; // 6
+
+let res1 = tab3.reduce(function(a, b) {return a - b;});
+res1; // - 6
+
+let res2 = tab3.reduceRight(function(a, b) {return a - b;});
+res2; // 0
+```
+
+---
+## Fonction comme retour d'une fonction
+
+Les fonctions peuvent créer et renvoyer des fonctions.
+
+### Exemple
+```javascript
+var plusN = function (n) {
+    var f = function (a) {
+        return a + n;
+    }
+
+    return f;
+};
+
+var plus1 = plusN(1);
+
+plus1(12); // 13
+```
+
+---
+
+## Le concept de fermeture (closure)
+
+### Visibilité de variables
+Dans le cas de définitions emboîtées de fonctions, les fonctions internes (inner functions) voient les variables définies dans la fonction contenante
+
+### Principe des fermetures
+> les valeurs intermédiaires lors de la création dynamique d'une fonction sont sauvegardées, même après son exécution
+en javascript. Cela est possible grâce au ramasse-miette (garbage collector)
+
+---
+
+##### Exemple illustratif
+
+```javascript
+var totor = function () {
+    var phrase = 'Sauvez des arbres, mangez des castors !';
+    return function () { // fonction anonyme
+       return phrase;    // visibilité ok
+   };
+};
+```
+
+--
+
+```javascript
+var f = totor();
+f(); // 'Sauvez des arbres, mangez des castors !'
+
+totor()(); // 'Sauvez des arbres, mangez des castors !'
+```
+
+---
+
+#### Exemple (détourné) `setTimeout`
+```javascript
+function go(n) {
+    'use strict';
+    if (n === 0) {
+        window.alert('GO !');
+    } else {
+        window.alert(n);
+        window.setTimeout(function () {go(n - 1);}, 1000);
+    }
+}
+```
+
+--
+
+```javascript
+window.setTimeout(function () {go(3);}, 1000);
+```
+
+---
+
+### Le Pattern module
+#### Objectif
+- masquer les fonctions et variables intermédiaires
+
+#### Pour cela on utilisera
+- les fermetures, les fonctions et les appels directs de fonctions anonymes
+
+---
+
+### Le Pattern module
+
+#### Exemple
+```javascript
+var Totor = (function Module () {
+    function f1 () {
+        return 'Totor';
+    }
+    function f2 () {
+        return 'le castor';
+    }
+    function f3 () {
+        return f1() + '  ' +  f2();
+    }
+
+    return {
+        leCastor: f3
+    };
+}());
+
+Totor.leCastor(); // 'Totor le castor'
+```
+
+---
+### IIFE (Immediately Invoked Function Expression)
+
+- Fonction anonyme appelée immédiatement
+- permet de ne pas encombrer l'espace de nom
+- permet d'avoir un seul `'use strict'`
+
+--
+
+#### Exemple
+```javascript
+(function () {
+    'use strict';
+
+    function coucou() {
+        alert('coucou');
+    }
+
+    coucou();
+}());
+
+```
+
+--
+
+#### Remarque
+- la notion de module apparaît en ES2015...
+
+---
+
+### Pattern cascade
+#### Principe
+- quand une fonction ne renvoie rien, on renvoie `this`
+
+#### Exemple
+```javascript
+var MutableNum = function (x) {
+    this.x = x
+};
+var MutableNum.prototype.plus1 = function () {
+    this.x += 1;
+    return this;
+};
+var MutableNum.prototype.moins1 = function () {
+    this.x -= 1;
+    return this;
+};
+var n = (new MutableNum(0)).plus1().plus1().moins1();
+```
+
+---
+
+### Mémoïsation
+
+#### Objectif
+- accélérer les traitements en sauvegardant les derniers résultats calculés par une fonction
+- on utilise pour cela des closures
+
+--
+
+#### Exemple (factorielle)
+
+```javascript
+var fac = function(n) {
+    if (n === 0) {
+        return 1;
+    }
+    return n * fac(n - 1);
+};
+
+```
+
+```javascript
+var  memoFac = (function () {
+    var cache = {};
+    return function (x) {
+        if (!(x in cache)) {
+            console.log('mise en cache de fac(' + x + ')');
+            cache[x] = fac(x);
+        }
+        return cache[x];
+    };
+}());
+```
+---
+
+```javascript
+memoFac(10); // 3628800
+mise en cache de fac(10)
+memoFac(10); // 3628800
+```
+
+---
+
+
+### Traverse
+#### Principe
+- des objets peuvent contenir d'autres objets
+- si les objets ont une certaine 'propriété', on peut vouloir leur appliquer une fonction, y compris dans les objets contenus (ex : `DOM`)
+
+#### Exercice
+écrire la fonction `traverse(obj, cond, f)`
+qui prend comme argument l'objet `obj` et qui applique la fonction `f` à la propriété vérifiant la condition `cond`.
+
+
+
+---
+
+class: center, middle
+
+## JavaScript asynchrone
+
+
+
+---
+
+## Synchrone vs. asynchrone
+
+### Definition
+#### Synchrone
+> Se dit de phénomènes, de machines, de tâches, de signaux ou d'informations dont les rythmes propres sont égaux, multiples ou sous-multiples. (Larousse)
+
+**⇒** horloge commune
+
+_Dans un programme_ : on attend la fin de l’exécution avant de poursuivre.
+
+--
+
+#### Asynchrone
+
+> Ce qui n’est pas synchrone.
+
+**⇒** pas d’ horloge commune
+
+_Dans un programme_ : l’exécution du code continue même si la fonction n’est pas finie
+
+Exemple : JavaScript, `&` de bash, etc.
+
+---
+
+## Exemples de fonctions asynchrones en JavaScript
+
+- `window.setInterval(f, delay)`
+    - lance la fonction `f` chaque `delay` millisecondes
+    - renvoie un identifiant
+    - `window.clearInterval(intervalID)` permet d'annuler
+
+--
+
+- `WindowTimers.setTimeout(f, delay)`
+    - Exécute la fonction définie par function dans `delay` millisecondes
+    - renvoie un identifiant
+    - `WindowTimers.clearTimeout()` annule le compte à rebours
+
+---
+
+## Ajax (Asynchronous JAvascript and XML)
+
+Apparu entre 1995 et 2005
+
+### Objectifs
+- Utiliser les technologies DOM + JavaScript (+XML) pour créer des applications web riches
+- Rendre les applications plus fluides
+- Récupérer dynamiquement des données à partir d'un serveur
+
+### Contraintes
+
+- De base, le nombre de connexions est limité à 2 par défaut. Attention aux onglets !
+- Par défaut, on ne peut faire que des requêtes vers le site/domaine d'où vient le script `js`. Plus de détails sur CORS (Cross-origin resource sharing): [https://developer.mozilla.org/fr/docs/HTTP/Access_control_CORS](https://developer.mozilla.org/fr/docs/HTTP/Access_control_CORS)
+
+---
+
+## L'objet XMLHttpRequest
+
+### Exemple d'utilisation _à la papa_
+
+```JavaScript
+// Création d'un objet XMLHttpRequest
+var req = new XMLHttpRequest();
+
+// Appel d'une méthode en mode Synchrone
+// DEPRECATED
+req.open('GET', 'http://www.mozilla.org/', false);
+
+// envoi du corps de la requête
+req.send(null);
+
+// test du retour
+if(req.status == 200)
+  dump(req.responseText);
+```
+
+---
+
+## L'objet XMLHttpRequest
+
+- constructeur: `XMLHttpRequest`
+- hérite de:  `XMLHttpRequestEventTarget` et de `EventTarget`
+- méthodes:
+    - `open(method, url, async, user, password)`
+    - `setRequestHeader(headerName, value)`
+    - `send(data)`
+    - `abort()`
+    - `getResponseHeader(name)`
+- événements associés:
+    - `loadstart`, `progress`, `abort`, `error`, `load`, `timeout`, `loadend`, `readystatechange`
+- propriétés:
+    - `responseText`
+    - `onload`, `onprogress`, `ontimeout`, `onError`,...
+    - `readyState`, `status`, ...
+
+---
+
+## Pattern d'utilisation
+
+```JavaScript
+var xhr = new XMLHttpRequest();
+xhr.open('GET', '/server', true);
+xhr.timeout = 2000; // time in milliseconds
+
+xhr.onload = function () {
+  // Request finished. Do processing here.
+};
+
+xhr.ontimeout = function (e) {
+  // XMLHttpRequest timed out. Do something here.
+};
+
+xhr.onerror = function () {
+  // Request finished with error. Do something here.
+};
+
+xhr.send(); // xhr.send(null); // old browsers...
+```    
+
+---
+
+## Exemple
+
+```JavaScript
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'http://www.mozilla.org/', true);
+xhr.onreadystatechange = function (aEvt) {
+  if (xhr.readyState == 4) {
+     if(xhr.status == 200)
+      dump(xhr.responseText);
+     else
+      dump("Erreur pendant le chargement de la page.\n");
+  }
+};
+xhr.send();
+```
+
+```JavaScript
+function onProgress(e) {
+  var percentComplete = (e.position / e.totalSize)*100;
+  ...
+}
+
+function onError(e) {
+  alert("Une erreur " + e.target.status + " s'est produite au cours de la réception du document.");
+}
+```
+    </textarea>
+ 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/remark/0.14.0/remark.min.js"></script>
+    <script>
+        window.onload = function () {
+            // Remark.js
+            var slideshow = remark.create();
+            /* $('#source').load('pres3_sanscorrection.md', function() {
+                var slideshow = remark.create();
+            }); */
+        }
+    </script>
+  </body>
+</html>

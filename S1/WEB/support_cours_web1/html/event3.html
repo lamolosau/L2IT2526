@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Events: demo 1</title>
+        <meta charset="utf-8" />
+    </head>
+    <script>
+
+var myMain = function () {
+document.getElementById("id12")
+    .addEventListener("click", function () {alert("coucou1");}, true);
+document.getElementById("id12")
+    .addEventListener("click", function () {alert("coucou2");}, true);
+};
+// window.onload = myMain;                                       // avant...
+document.addEventListener("DOMContentLoaded", myMain, false);    // HTML5
+</script>
+    <body>
+<div id="id12">
+
+        coucou
+</div>
+        
+    </body>
+</html>

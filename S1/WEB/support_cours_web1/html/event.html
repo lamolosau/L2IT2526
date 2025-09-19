@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Events: demo 1</title>
+        <meta charset="utf-8" />
+    </head>
+    <script>
+    var computeColor = function (c) {
+    if (c === 'red') {
+       return 'blue';
+    } else {
+        return 'red';
+    }
+};
+var myMain = function () {
+    var p = document.getElementById('demo');
+    p.onclick = function () {
+        p.style.backgroundColor = computeColor(p.style.backgroundColor);
+    };
+};
+// window.onload = myMain;                                       // avant...
+document.addEventListener("DOMContentLoaded", myMain, false);    // HTML5
+</script>
+    <body>
+        <p id="demo">
+            change css
+        </p>
+        
+    </body>
+</html>

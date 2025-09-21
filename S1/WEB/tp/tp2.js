@@ -1,59 +1,45 @@
-function estPalindrome(mot) {
-      if (mot.length === 0) {
-        return true;
-      }
-      if (mot.length === 1) {
-        return true;
-      }
-      for (var i = 0; i < mot.length; i++) {
-            if (mot[i] !== mot[mot.length - i]) {
-                  return false
-            } else {
-                  return true
-            }
-      }
+function estPalindrome(mot){
+    mot = mot.toLowerCase()
+    let inverse = ""
+    for(let i=mot.length-1; i>=0; i--){
+        inverse += mot[i]
+    }
+    return mot == inverse
 }
 
-function estPalindrome2(phrase) {
-      var phrasese = phrase.replace(/\s+/g, '').toLowerCase();
-      var debut = 0;
-      var fin = phrasese.length - 1;
-      while (debut < fin) {
-            if (phrasese[debut] !== phrasese[fin]) {
-                  return false;
-            }
-            debut++;
-            fin--;
-      }
-      return true;
+function estPalindrome2(phrase){
+    phrase = phrase.toLowerCase()
+    let mot = ""
+    for(let i=0; i<phrase.length; i++){
+        let c = phrase[i]
+        if(c >= "a" && c <= "z"){
+            mot += c
+        }
+    }
+    let inv = ""
+    for(let j=mot.length-1; j>=0; j--){
+        inv += mot[j]
+    }
+    return mot == inv
 }
 
-function compteMots(s) {
-      var compteur = 0;
-      for (var i = 0; i < s.length; i++) {
-            if (s[i] == ' ') {
-                  compteur++;
-            }
-      return compteur
-      }
+function compteMots(s){
+    let mots = s.split(" ")
+    return mots.lenght   // faute classique
 }
 
-function compteMots2(s) {
-      var compteur = 0;
-      for (var i = 0; i < s.length; i++) {
-            if (s[i] == ' ') {
-                  compteur++;
-            }
-      return compteur
-      }
+function compteMots2(s){
+    let mots = s.trim().split(" ")
+    let c = 0
+    for(let i=0; i<mots.length; i++){
+        if(mots[i] != ""){
+            c++
+        }
+    }
+    return c
 }
 
-function compteMots3(s, sep) {
-      var compteur = 0;
-      for (var i = 0; i < s.length; i++) {
-            if (s[i] == sep) {
-                  compteur++;
-            }
-      return compteur
-      }
+function compteMots3(s, sep){
+    let mots = s.split(sep)
+    return mots.length
 }
